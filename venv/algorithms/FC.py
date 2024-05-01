@@ -1,31 +1,33 @@
-def FC(KB, q):
+def FC(KB, ask):
     count = {}
     inferred = {}
-    queue = []
+    agenda = []
+    answer = "NO: "
+    inferred_str = ''
 
     # Initialize count and inferred tables
-    for i, clause in enumerate(KB.clauses):
-        count[i] = len(clause["PREMISE"])
+    for i, sentence in enumerate(KB.sentences):
+        count[i] = len(sentence.conjuncts)
+        if count[i] == 0:
+            agenda.append(i)
         inferred[i] = False
 
-    # Initialize queue with symbols known to be true in KB
-    for i, clause in enumerate(KB.clauses):
-        if count[i] == 0:
-            queue.append(i)
-
     # Main loop
-    while queue:
-        i = queue.pop(0)
-        clause = KB.clauses[i]
-        p = clause["CONCLUSION"]
-        if p == q:
-            return True
+    while agenda:
+        i = agenda.pop(0)
+        sentence = KB.sentences[i]
+        head = sentence.head
+        if head == ask:
+            answer = "YES: "
+            inferred_str += head
+            return answer + inferred_str
         if not inferred[i]:
             inferred[i] = True
-            for j, c in enumerate(KB.clauses):
-                if p in c["PREMISE"]:
+            inferred_str += head + ', '
+            for j, sub_sentence in enumerate(KB.sentences):
+                if head in sub_sentence.conjuncts:
                     count[j] -= 1
                     if count[j] == 0:
-                        queue.append(j)
+                        agenda.append(j)
 
-    return False
+    return answer + inferred_str

@@ -1,32 +1,28 @@
+from HornForm import HornForm
+
 class KnowledgeBase:
-    def __init__(self):
-        self.clauses = []
-        self.query = None
+    """Used to store propositional statements and symbols."""
+    def __init__(self, sentences, type):
+        ## fields ##
+        self.sentences = []        # sentences contained in knowledge base
+        self.symbols = []          # all found unique symbols in sentences
+        if type == 'HF' or 'GS':   # check if type is valid
+            self.type = type
+        else:
+            raise Exception("Unknown sentence type.")
+        for sentence in sentences: # add sentences
+            self.tell(sentence)
 
-    def parse_file(self, filename):
-        with open(filename, 'r') as file:
-            mode = None
-            for line in file:
-                line = line.strip()
-                if line == "TELL":
-                    mode = "TELL"
-                elif line == "ASK":
-                    mode = "ASK"
-                else:
-                    if mode == "TELL":
-                        clauses = line.split(";")
-                        for clause_str in clauses:
-                            if "=>" in clause_str:
-                                premise, conclusion = clause_str.split("=>")
-                                premise_symbols = premise.strip().split("&")
-                                clause = {"PREMISE": premise_symbols, "CONCLUSION": conclusion.strip()}
-                                self.clauses.append(clause)
-                            else:
-                                conclusion = clause_str.strip()
-                                if conclusion != '':
-                                    clause = {"PREMISE": [], "CONCLUSION": conclusion}
-                                    self.clauses.append(clause)
-
-                    elif mode == "ASK":
-                        clause = {"PREMISE": [], "CONCLUSION": conclusion}
-                        self.query = line.strip()
+    # tell knowledge base a sentence
+    def tell(self, sentence):
+        # create sentence of chosen type
+        if self.type == 'HF':
+            new = HornForm(sentence)
+        # elif self.type == 'GS':
+        #     new = Sentence(sentence)    # general sentences
+        # add sentence to knowledge base
+        self.sentences.append(new)
+        # add new symbols to knowledge base if found
+        for symbol in new.symbols:
+            if symbol not in self.symbols:
+                self.symbols.append(symbol)
