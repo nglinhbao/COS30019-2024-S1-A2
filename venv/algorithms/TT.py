@@ -1,45 +1,46 @@
-def TT_ENTAILS(KB, q):
-    symbols = extract_symbols(KB, q)
-    return TT_CHECK_ALL(KB, q, symbols, {})
+import sys
+sys.setrecursionlimit(10000)
+class TT:
+    def __init__(self) -> None:
+        self.output = ""
+        self.count = 0
+        self.check = None
 
+    def getOutput(self):
+        return self.output
 
-def TT_CHECK_ALL(KB, q, symbols, model):
-    if not symbols:
-        for clause in KB.clauses:
-            if not PL_TRUE(clause, model):
-                return True  # When KB is false, always return true
-        return PL_TRUE(q, model)
-    else:
-        P = symbols[0]
-        rest = symbols[1:]
-        return (TT_CHECK_ALL(KB, q, rest, {**model, P: True}) and
-                TT_CHECK_ALL(KB, q, rest, {**model, P: False}))
-
-
-def PL_TRUE(sentence, model):
-    if isinstance(sentence, str):
-        # return model.get(sentence, False)
-        return True
-    elif isinstance(sentence, dict):
-        return all(PL_TRUE(p, model) for p in sentence['PREMISE']) and PL_TRUE(sentence['CONCLUSION'], model)
-    else:
-        raise ValueError("Invalid sentence format")
-
-
-def extract_symbols(KB, q):
-    # Extract the list of proposition symbols from KB and q
-    symbols = set()
-
-    # Extract symbols from the knowledge base
-    for clause in KB.clauses:
-        for symbol in clause["PREMISE"]:
-            symbols.add(symbol)
-        symbols.add(clause["CONCLUSION"])
-
-    # Extract symbols from the query
-    if isinstance(q, str):
-        symbols.add(q)
-    elif isinstance(q, tuple):
-        symbols.update(q[1:])
-
-    return list(symbols)
+    def infer(self,kb,query): #infer the query from the knowledgebase
+        temp = [] #list to store all symbols include in the query and knowledge base
+        for x in query.symbols: #get symbols from the query
+            temp.append(x.getCharacter())
+        lst = kb.symbols.copy() 
+        for x in temp: #combine any new symbol in query with symbols in the knowledge base
+            lst[x] = False
+        symbols = list(lst.keys()) #just get the unique set of symbols in both query and knowledge base
+        self.TTCheckAll(kb,query,symbols,{}) #check the entailment
+        if  self.check == "NO": #if detect a case that does not entail then the output is NO 
+            self.output = "NO"
+        else:
+            self.output = f"YES: {self.count}"
+        
+    def TTCheckAll(self,kb, query, symbols, model):
+       
+        if self.check == "NO": #if the query already not entailed by the kb then return 
+            return
+        if len(symbols) == 0: #if we get enough number of symbols then check for entailment
+            if kb.PLTrue(model): #satisfy kb
+                query.setValue(model)
+                if query.result(): #satisfy query
+                    self.count +=1
+                else: #otherwise return no
+                    self.check = "NO" 
+        else:
+            s = symbols.pop(0) #copy all the lists and objects to prevent call by reference
+            s1 = symbols.copy() #every objects need to be new ones
+            s2 = symbols.copy()
+            t1 = model.copy()
+            t2 = model.copy()
+            t1[s] = True
+            a = self.TTCheckAll(kb, query, s1, t1) 
+            t2[s] = False
+            b= self.TTCheckAll(kb, query, s2, t2)

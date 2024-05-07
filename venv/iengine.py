@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # get tell and ask from file of given name
     try:
-        tell, ask = FileReader.read(sys.argv[2])
+        tell, ask = FileReader.read(sys.argv[1])
     except:
         print("File not found.")
         sys.exit(0)
@@ -31,22 +31,25 @@ if __name__ == "__main__":
     if not ask:
         print("No ask found.")
         sys.exit(0)
-
-    method = sys.argv[1]
+    ask = Sentence(ask)
+    method = sys.argv[2]
     # set up knowledge base and method based on chosen method
     # print solution using method and query (ask)
     if method == 'TT':
-        kb = KnowledgeBase(tell, 'GS') # setup knowledge base with general sentences
-        tt = TruthTable(kb)
-        print(tt.solve(ask))
+        kb = KnowledgeBase(tell) # setup knowledge base with general sentences
+        tt = TT()
+        tt.infer(kb, ask)
+        print(tt.getOutput())
     elif method == 'FC':
-        kb = KnowledgeBase(tell, 'HF') # setup knowledge base with horn form
-        fc = FC(kb, ask)
-        print(fc)
+        kb = KnowledgeBase(tell) # setup knowledge base with horn form
+        fc = FC()
+        fc.infer(kb,ask)
+        print(fc.getOutput())
         # print(fc.solve(ask))
     elif method == 'BC':
-        kb = KnowledgeBase(tell, 'HF')
-        bc = BC(kb, ask)
-        print(bc)
+        kb = KnowledgeBase(tell)
+        bc = BC()
+        bc.infer(kb,ask)
+        print(bc.getOutput())
     else:
         print("Unknown method entered.")
